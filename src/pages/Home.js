@@ -170,6 +170,18 @@ const Home = () => {
             color="#2E86AB" bg="#EAF4FB"
             onClick={() => navigate('/profile')}
           />
+          <ActionCard
+            icon="🏆" title="My Ranking"
+            subtitle="See where you rank in school"
+            color="#F39C12" bg="#FEF9E7"
+            onClick={() => navigate('/leaderboard')}
+          />
+          <ActionCard
+            icon="🔥" title="Study Streak"
+            subtitle="Track your daily study streak"
+            color="#E74C3C" bg="#FDEDEC"
+            onClick={() => navigate('/streak')}
+          />
         </div>
 
         <div style={{ height: 20 }} />
@@ -230,6 +242,8 @@ const styles = {
   actionIconBox:   { width: 56, height: 56, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px' },
   actionTitle:     { fontSize: 13, fontWeight: 'bold', margin: '0 0 4px' },
   actionSubtitle:  { fontSize: 11, color: '#888', margin: 0 },
+
+  
 };
 
 export default Home;

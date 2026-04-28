@@ -38,4 +38,10 @@ export const submitExam        = (id, data)   => API.post(`/exams/${id}/submit`,
 export const getStudentAssignments = ()         => API.get('/assignments/student');
 export const submitAssignment      = (id, data) => API.post(`/assignments/${id}/submit`, data);
 
+// ── Leaderboard ───────────────────────────────
+export const getMyRank    = () => API.get('/leaderboard/my-rank');
+
+// ── Streaks ───────────────────────────────────
+export const getMyStreak  = () => API.get('/streaks/mine');
+
 export default API;

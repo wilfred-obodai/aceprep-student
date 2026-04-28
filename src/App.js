@@ -10,7 +10,9 @@ import Profile       from './pages/Profile';
 import AiTutor       from './pages/AiTutor';
 import Exams         from './pages/Exams';
 import TakeExam      from './pages/TakeExam';
-import Assignments from './pages/Assignments'
+import Assignments from './pages/Assignments';
+import Leaderboard  from './pages/Leaderboard';
+import Streak       from './pages/Streak';
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useAuth();
@@ -47,6 +49,12 @@ const App = () => {
           } />
           <Route path="/assignments" element={
             <ProtectedRoute><Assignments /></ProtectedRoute>
+          } />
+          <Route path="/leaderboard" element={
+            <ProtectedRoute><Leaderboard /></ProtectedRoute>
+          } />
+          <Route path="/streak" element={
+            <ProtectedRoute><Streak /></ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -14,6 +14,8 @@ const Sidebar = () => {
   { path: '/assignments',  icon: '📚', label: 'Assignments' },
   { path: '/ai-tutor',     icon: '🤖', label: 'AI Tutor'    },
   { path: '/grades',       icon: '📊', label: 'Grades'      },
+  { path: '/leaderboard',  icon: '🏆', label: 'Ranking'     },
+  { path: '/streak',       icon: '🔥', label: 'Streak'      },
   { path: '/profile',      icon: '👤', label: 'Profile'     },
 ];
 
