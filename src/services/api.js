@@ -44,4 +44,21 @@ export const getMyRank    = () => API.get('/leaderboard/my-rank');
 // ── Streaks ───────────────────────────────────
 export const getMyStreak  = () => API.get('/streaks/mine');
 
+// ── Announcements ─────────────────────────────
+export const getStudentAnnouncements = () => API.get('/announcements/student');
+
+// ── Timetable ─────────────────────────────────
+export const getStudentTimetable     = () => API.get('/timetable/student');
+
+// ── Attendance ────────────────────────────────
+export const getMyAttendance   = () => API.get('/attendance/mine');
+
+// ── Messages ──────────────────────────────────
+export const getMyInbox        = () => API.get('/messages/inbox');
+export const getMySent         = () => API.get('/messages/sent');
+export const markMessageAsRead = (id) => API.put(`/messages/${id}/read`);
+
+// ── Materials ─────────────────────────────────
+export const getMyMaterials    = () => API.get('/upload/materials');
+
 export default API;

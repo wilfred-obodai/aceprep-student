@@ -13,6 +13,12 @@ import TakeExam      from './pages/TakeExam';
 import Assignments from './pages/Assignments';
 import Leaderboard  from './pages/Leaderboard';
 import Streak       from './pages/Streak';
+import Announcements from './pages/Announcements';
+import Timetable     from './pages/Timetable';
+import Attendance    from './pages/Attendance';
+import Messages      from './pages/Messages';
+import StudyMaterials from './pages/StudyMaterials';
+
 
 const ProtectedRoute = ({ children }) => {
   const { token } = useAuth();
@@ -57,6 +63,11 @@ const App = () => {
             <ProtectedRoute><Streak /></ProtectedRoute>
           } />
           <Route path="*" element={<Navigate to="/" />} />
+          <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
+          <Route path="/timetable"     element={<ProtectedRoute><Timetable /></ProtectedRoute>} />
+          <Route path="/attendance"      element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
+          <Route path="/messages"        element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/study-materials" element={<ProtectedRoute><StudyMaterials /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

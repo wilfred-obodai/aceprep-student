@@ -182,8 +182,19 @@ const Home = () => {
             color="#E74C3C" bg="#FDEDEC"
             onClick={() => navigate('/streak')}
           />
+          <ActionCard
+            icon="📢" title="Announcements"
+            subtitle="School notices & updates"
+            color="#E74C3C" bg="#FDEDEC"
+            onClick={() => navigate('/announcements')}
+          />
+          <ActionCard
+            icon="📅" title="Timetable"
+            subtitle="Your class schedule"
+            color="#27AE60" bg="#EAFAF1"
+            onClick={() => navigate('/timetable')}
+          />
         </div>
-
         <div style={{ height: 20 }} />
       </div>
     </div>
