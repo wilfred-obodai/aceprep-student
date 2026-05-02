@@ -18,6 +18,12 @@ import Timetable     from './pages/Timetable';
 import Attendance    from './pages/Attendance';
 import Messages      from './pages/Messages';
 import StudyMaterials from './pages/StudyMaterials';
+import XPLevel       from './pages/XPLevel';
+import Analytics     from './pages/Analytics';
+import QuizBattle    from './pages/QuizBattle';
+import VideoRoom     from './pages/VideoRoom';
+import ExamCountdown from './pages/ExamCountdown';
+import Teachers from './pages/Teachers';
 
 
 const ProtectedRoute = ({ children }) => {
@@ -68,6 +74,12 @@ const App = () => {
           <Route path="/attendance"      element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
           <Route path="/messages"        element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/study-materials" element={<ProtectedRoute><StudyMaterials /></ProtectedRoute>} />
+          <Route path="/xp"        element={<ProtectedRoute><XPLevel /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+          <Route path="/battle"    element={<ProtectedRoute><QuizBattle /></ProtectedRoute>} />
+          <Route path="/video"     element={<ProtectedRoute><VideoRoom /></ProtectedRoute>} />
+          <Route path="/countdown" element={<ProtectedRoute><ExamCountdown /></ProtectedRoute>} />
+          <Route path="/teachers" element={<ProtectedRoute><Teachers /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

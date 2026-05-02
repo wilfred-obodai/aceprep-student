@@ -61,4 +61,18 @@ export const markMessageAsRead = (id) => API.put(`/messages/${id}/read`);
 // ── Materials ─────────────────────────────────
 export const getMyMaterials    = () => API.get('/upload/materials');
 
+// ── XP & Gamification ─────────────────────────
+export const getMyXP          = ()     => API.get('/xp/mine');
+
+// ── Analytics ─────────────────────────────────
+export const getMyAnalytics   = ()     => API.get('/analytics/mine');
+
+// ── Video Rooms ───────────────────────────────
+export const joinVideoRoom    = (code) => API.get(`/video-rooms/join/${code}`);
+
+// ── Battle ────────────────────────────────────
+export const createBattle     = (data) => API.post('/battle/create', data);
+export const joinBattle       = (data) => API.post('/battle/join', data);
+export const getBattle        = (code) => API.get(`/battle/${code}`);
+
 export default API;

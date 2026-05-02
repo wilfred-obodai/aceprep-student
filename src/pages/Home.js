@@ -194,6 +194,36 @@ const Home = () => {
             color="#27AE60" bg="#EAFAF1"
             onClick={() => navigate('/timetable')}
           />
+          <ActionCard
+            icon="⚔️" title="Quiz Battle"
+            subtitle="Race vs classmates!"
+            color="#E74C3C" bg="#FDEDEC"
+            onClick={() => navigate('/battle')}
+          />
+          <ActionCard
+            icon="🎥" title="Video Room"
+            subtitle="Join live study session"
+            color="#27AE60" bg="#EAFAF1"
+            onClick={() => navigate('/video')}
+          />
+          <ActionCard
+            icon="🎯" title="XP & Level"
+            subtitle="Track your progress"
+            color="#F39C12" bg="#FEF9E7"
+            onClick={() => navigate('/xp')}
+          />
+          <ActionCard
+            icon="📈" title="My Analytics"
+            subtitle="See your weak subjects"
+            color="#8E44AD" bg="#F5EEF8"
+            onClick={() => navigate('/analytics')}
+          />
+          <ActionCard
+            icon="⏳" title="Exam Countdown"
+            subtitle="BECE & WASSCE timer"
+            color="#E67E22" bg="#FDEBD0"
+            onClick={() => navigate('/countdown')}
+          />
         </div>
         <div style={{ height: 20 }} />
       </div>
