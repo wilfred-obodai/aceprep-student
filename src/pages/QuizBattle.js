@@ -172,7 +172,7 @@ const QuizBattle = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1, padding: 16 }}>
+        <div style={{ marginLeft: 235, flex: 1, padding: 16 }}>
           <div style={styles.resultsCard}>
             <p style={{ fontSize: 64, textAlign: 'center' }}>
               {myResult?.rank === 1 ? '🏆' : myResult?.rank === 2 ? '🥈' : '🥉'}
@@ -210,7 +210,7 @@ const QuizBattle = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1 }}>
+        <div style={{ marginLeft: 235, flex: 1 }}>
           {/* Battle Header */}
           <div style={styles.battleHeader}>
             <div style={styles.battleTop}>
@@ -303,7 +303,7 @@ const QuizBattle = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1, padding: 16 }}>
+        <div style={{ marginLeft: 235, flex: 1, padding: 16 }}>
           <div style={styles.waitingCard}>
             <p style={{ fontSize: 48, textAlign: 'center' }}>⚔️</p>
             <h2 style={styles.waitingTitle}>Battle Room</h2>
@@ -357,7 +357,7 @@ const QuizBattle = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
       <BottomNav />
-      <div style={{ marginLeft: 220, flex: 1 }}>
+      <div style={{ marginLeft: 235, flex: 1 }}>
         <div style={styles.header}>
           <h1 style={styles.title}>⚔️ Quiz Battle</h1>
           <p style={styles.subtitle}>Challenge your classmates in real-time!</p>

@@ -1,79 +1,82 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Sidebar = () => {
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const { logout } = useAuth();
-
-  // BottomNav tabs
-const tabs = [
-  { path: '/',               icon: '🏠', label: 'Home'      },
-  { path: '/questions',      icon: '📝', label: 'Questions' },
-  { path: '/exams',          icon: '📋', label: 'Exams'     },
-  { path: '/assignments',    icon: '📚', label: 'Work'      },
-  { path: '/announcements',  icon: '📢', label: 'News'      },
-  { path: '/timetable',      icon: '📅', label: 'Timetable' },
-  { path: '/study-materials',icon: '📖', label: 'Materials' },
-  { path: '/teachers', icon: '👨‍🏫', label: 'Teachers' },
-  { path: '/messages',       icon: '✉️', label: 'Messages'  },
-  { path: '/ai-tutor',       icon: '🤖', label: 'AI Tutor'  },
-  { path: '/battle',         icon: '⚔️', label: 'Battle'    },
-  { path: '/video',          icon: '🎥', label: 'Video'     },
-  { path: '/grades',         icon: '📊', label: 'Grades'    },
-  { path: '/analytics',      icon: '📈', label: 'Analytics' },
-  { path: '/leaderboard',    icon: '🏆', label: 'Ranking'   },
-  { path: '/xp',             icon: '🎯', label: 'XP Level'  },
-  { path: '/streak',         icon: '🔥', label: 'Streak'    },
-  { path: '/countdown',      icon: '⏳', label: 'Countdown' },
-  { path: '/attendance',     icon: '✅', label: 'Attendance'},
-  { path: '/profile',        icon: '👤', label: 'Profile'   },
+const navLinks = [
+  { path: '/home',      icon: '🏠', label: 'Home' },
+  { path: '/questions', icon: '📄', label: 'Past Questions' },
+  { path: '/exams',     icon: '📝', label: 'Exams' },
+  { path: '/work',      icon: '📋', label: 'Assignments' },
+  { path: '/ai-tutor',  icon: '🤖', label: 'AI Tutor' },
+  { path: '/materials', icon: '📚', label: 'Materials' },
+  { path: '/battle',    icon: '⚔️',  label: 'Quiz Battle' },
+  { path: '/countdown', icon: '⏳', label: 'Countdown' },
+  { path: '/grades',    icon: '📊', label: 'Grades' },
+  { path: '/analytics', icon: '📈', label: 'Analytics' },
+  { path: '/streak',    icon: '🔥', label: 'Streaks' },
+  { path: '/xp',        icon: '⭐', label: 'XP Level' },
+  { path: '/leaderboard',icon: '🏆', label: 'Leaderboard' },
+  { path: '/news',      icon: '📢', label: 'Announcements' },
+  { path: '/timetable', icon: '📅', label: 'Timetable' },
+  { path: '/attendance',icon: '✅', label: 'Attendance' },
+  { path: '/messages',  icon: '✉️',  label: 'Messages' },
+  { path: '/teachers',  icon: '👨‍🏫', label: 'Teachers' },
+  { path: '/video',     icon: '🎥', label: 'Video Rooms' },
+  { path: '/profile',   icon: '👤', label: 'Profile' },
 ];
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+// Ghana flag colors for active links
+const ghanaColors = ['#006B3F', '#FCD116', '#CE1126'];
+const getGhanaColor = (index) => ghanaColors[index % 3];
+
+const BottomNav = () => {
+  const location  = useLocation();
+  const { logout, user } = useAuth();
 
   return (
     <div style={styles.sidebar}>
       {/* Logo */}
       <div style={styles.logo}>
-        <h2 style={styles.logoText}>ACEPREP</h2>
+        {/* Ghana flag strip */}
+        <div style={styles.flagStrip}>
+          <div style={{ flex:1, background:'#006B3F' }} />
+          <div style={{ flex:1, background:'#FCD116' }} />
+          <div style={{ flex:1, background:'#CE1126' }} />
+        </div>
+        <h1 style={styles.logoText}>ACEPREP</h1>
         <p style={styles.logoSub}>Student Portal</p>
       </div>
 
       {/* Nav Links */}
       <nav style={styles.nav}>
-        {tabs.map(tab => {
-          const isActive = location.pathname === tab.path;
+        {navLinks.map((link, index) => {
+          const isActive = location.pathname === link.path;
+          const color    = getGhanaColor(index);
           return (
-            <button
-              key={tab.path}
+            <Link
+              key={link.path}
+              to={link.path}
               style={{
-                ...styles.navItem,
-                ...(isActive ? styles.navItemActive : {})
+                ...styles.navLink,
+                ...(isActive ? {
+                  color:            '#ffffff',
+                  background:       `${color}22`,
+                  borderLeftColor:  color,
+                  fontWeight:       'bold',
+                } : {}),
               }}
-              onClick={() => navigate(tab.path)}
             >
-              <span style={styles.navIcon}>{tab.icon}</span>
-              <span style={{
-                ...styles.navLabel,
-                color: isActive ? '#ffffff' : '#AED6F1',
-                fontWeight: isActive ? 'bold' : 'normal',
-              }}>
-                {tab.label}
-              </span>
-              {isActive && <div style={styles.activeLine} />}
-            </button>
+              <span style={styles.navIcon}>{link.icon}</span>
+              {link.label}
+            </Link>
           );
         })}
       </nav>
 
-      {/* Logout */}
+      {/* Bottom */}
       <div style={styles.bottom}>
-        <button style={styles.logoutBtn} onClick={handleLogout}>
+        <p style={styles.userEmail}>{user?.fullName?.split(' ')[0] || user?.email}</p>
+        <button onClick={logout} style={styles.logoutBtn}>
           🚪 Logout
         </button>
       </div>
@@ -82,87 +85,17 @@ const tabs = [
 };
 
 const styles = {
-  sidebar: {
-  width: 220,
-  minHeight: '100vh',
-  height: '100vh',
-  background: '#1A5276',
-  display: 'flex',
-  flexDirection: 'column',
-  position: 'fixed',
-  top: 0,
-  left: 0,
-  overflowY: 'auto',
-},
-  logo: {
-    padding:      '24px 20px',
-    borderBottom: '1px solid rgba(255,255,255,0.1)',
-  },
-  logoText: {
-    color:         '#ffffff',
-    fontSize:      22,
-    fontWeight:    'bold',
-    letterSpacing: 2,
-    margin:        0,
-  },
-  logoSub: {
-    color:     '#AED6F1',
-    fontSize:  11,
-    marginTop: 4,
-  },
-  nav: {
-    flex:    1,
-    padding: '16px 0',
-  },
-  navItem: {
-    display:        'flex',
-    alignItems:     'center',
-    width:          '100%',
-    padding:        '12px 20px',
-    background:     'none',
-    border:         'none',
-    cursor:         'pointer',
-    position:       'relative',
-    borderLeft:     '3px solid transparent',
-    transition:     'all 0.2s',
-  },
-  navItemActive: {
-    background:  'rgba(255,255,255,0.15)',
-    borderLeft:  '3px solid #F39C12',
-  },
-  navIcon: {
-    fontSize:    18,
-    marginRight: 12,
-    flexShrink:  0,
-  },
-  navLabel: {
-    fontSize: 14,
-    color:    '#AED6F1',
-  },
-  activeLine: {
-    position: 'absolute',
-    right:    0,
-    top:      '20%',
-    bottom:   '20%',
-    width:    3,
-    background:   '#F39C12',
-    borderRadius: '3px 0 0 3px',
-  },
-  bottom: {
-    padding:      '16px 20px',
-    borderTop:    '1px solid rgba(255,255,255,0.1)',
-  },
-  logoutBtn: {
-    width:        '100%',
-    padding:      '10px',
-    background:   'rgba(231,76,60,0.2)',
-    border:       '1px solid #E74C3C',
-    borderRadius: 8,
-    color:        '#E74C3C',
-    fontSize:     13,
-    fontWeight:   'bold',
-    cursor:       'pointer',
-  },
+  sidebar:     { width: 235, minHeight: '100vh', height: '100vh', background: '#1A5276', display: 'flex', flexDirection: 'column', position: 'fixed', top: 0, left: 0, overflowY: 'auto' },
+  logo:        { padding: '16px 18px', borderBottom: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 },
+  flagStrip:   { display: 'flex', height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 10 },
+  logoText:    { color: '#fff', fontSize: 22, fontWeight: 'bold', letterSpacing: 2, margin: 0 },
+  logoSub:     { color: '#AED6F1', fontSize: 11, marginTop: 2 },
+  nav:         { flex: 1, padding: '8px 0' },
+  navLink:     { display: 'flex', alignItems: 'center', padding: '10px 18px', color: '#AED6F1', fontSize: 13, textDecoration: 'none', borderLeft: '3px solid transparent', transition: 'all 0.2s', margin: '1px 0' },
+  navIcon:     { marginRight: 10, fontSize: 15, width: 20, textAlign: 'center' },
+  bottom:      { padding: '14px 18px', borderTop: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 },
+  userEmail:   { color: '#AED6F1', fontSize: 13, marginBottom: 10, fontWeight: 'bold' },
+  logoutBtn:   { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: 'rgba(231,76,60,0.2)', color: '#E74C3C', border: '1px solid #E74C3C', borderRadius: 6, padding: '8px', fontSize: 13, cursor: 'pointer', width: '100%' },
 };
 
-export default Sidebar;
+export default BottomNav;

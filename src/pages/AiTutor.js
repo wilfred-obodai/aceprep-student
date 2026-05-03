@@ -1,200 +1,241 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import BottomNav from '../components/BottomNav';
+import API from '../services/api';
 
 const AiTutor = () => {
-  const [messages, setMessages] = useState([
-    {
-      role:    'assistant',
-      content: '👋 Hello! I am your AcePrep AI Tutor. I can help you with any BECE or WASSCE topic, explain answers, solve questions, and recommend what to study. What would you like help with today?'
-    }
-  ]);
-  const [input,   setInput]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const [messages,   setMessages]   = useState([]);
+  const [input,      setInput]      = useState('');
+  const [loading,    setLoading]    = useState(false);
+  const [history,    setHistory]    = useState([]);
+  const [showHistory,setShowHistory]= useState(false);
+  const [sessionId,  setSessionId]  = useState(() => `session_${Date.now()}`);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    loadHistory();
+    // Load welcome message
+    setMessages([{
+      role: 'assistant',
+      message: "👋 Hello! I'm your AcePrep AI Tutor. I'm here to help you with BECE and WASSCE preparation. What subject or topic would you like help with today?"
+    }]);
+  }, []);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const loadHistory = async () => {
+    try {
+      const res = await API.get('/ai-tutor-history/history');
+      if (res.data.success) setHistory(res.data.history || []);
+    } catch (e) { console.error(e); }
+  };
 
-    const userMessage = { role: 'user', content: input.trim() };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+  const loadSession = async (sid) => {
+    try {
+      const res = await API.get(`/ai-tutor-history/history/${sid}`);
+      if (res.data.success) {
+        setMessages(res.data.messages.map(m => ({ role: m.role, message: m.message })));
+        setSessionId(sid);
+        setShowHistory(false);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const startNewChat = () => {
+    const newId = `session_${Date.now()}`;
+    setSessionId(newId);
+    setMessages([{
+      role: 'assistant',
+      message: "👋 Hello! I'm your AcePrep AI Tutor. What would you like to study today?"
+    }]);
+    setShowHistory(false);
+  };
+
+  const deleteSession = async (sid, e) => {
+    e.stopPropagation();
+    try {
+      await API.delete(`/ai-tutor-history/history/${sid}`);
+      loadHistory();
+    } catch (e) { console.error(e); }
+  };
+
+  const sendMessage = async () => {
+    const msg = input.trim();
+    if (!msg || loading) return;
     setInput('');
     setLoading(true);
 
+    const userMsg = { role: 'user', message: msg };
+    setMessages(prev => [...prev, userMsg]);
+
+    // Save user message
     try {
-      const response = await fetch('http://localhost:5000/api/ai/chat', {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ messages: newMessages }),
+      await API.post('/ai-tutor-history/save', {
+        session_id: sessionId, role: 'user', message: msg
+      });
+    } catch (e) { console.error(e); }
+
+    try {
+      const history_context = messages.slice(-6).map(m => ({
+        role:    m.role === 'user' ? 'user' : 'assistant',
+        content: m.message,
+      }));
+
+      const res = await API.post('/ai/chat', {
+        messages: [
+          ...history_context,
+          { role: 'user', content: `You are AcePrep AI Tutor for Ghanaian JHS/SHS students preparing for BECE and WASSCE exams. Be helpful, encouraging and use simple clear language. Current question: ${msg}` }
+        ]
       });
 
-      const data = await response.json();
-      if (data.success) {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
-      } else {
-        setMessages(prev => [...prev, {
-          role:    'assistant',
-          content: '❌ Sorry, I could not generate a response. Please try again.'
-        }]);
-      }
+      const reply = res.data.message || 'Sorry, I could not answer that.';
+      setMessages(prev => [...prev, { role: 'assistant', message: reply }]);
+
+      await API.post('/ai-tutor-history/save', {
+        session_id: sessionId, role: 'assistant', message: reply
+      });
+
+      loadHistory();
     } catch (e) {
-      setMessages(prev => [...prev, {
-        role:    'assistant',
-        content: '❌ Connection error. Please make sure the server is running.'
-      }]);
+      setMessages(prev => [...prev, { role: 'assistant', message: '⚠️ Connection error. Please try again.' }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
   const quickPrompts = [
-    '📐 Solve: If 2x + 3 = 11, find x',
-    '🌱 Explain photosynthesis',
-    '🇬🇭 Who founded Ghana?',
-    '📊 What topics should I study for BECE Maths?',
-    '✍️ What is personification?',
-    '⚛️ What is the chemical symbol for water?',
+    '📐 Help me with Maths',
+    '📖 Explain English grammar',
+    '🔬 Integrated Science topics',
+    '🌍 Social Studies revision',
+    '💡 Study tips for BECE',
   ];
 
   return (
     <div style={styles.container}>
       <BottomNav />
       <div style={styles.main}>
+
         {/* Header */}
         <div style={styles.header}>
-          <div style={styles.headerLeft}>
-            <div style={styles.aiAvatar}>🤖</div>
-            <div>
-              <h2 style={styles.headerTitle}>AI Tutor</h2>
-              <p style={styles.headerSub}>Powered by Claude AI</p>
-            </div>
+          <div>
+            <h1 style={styles.title}>🤖 AI Tutor</h1>
+            <p style={styles.subtitle}>Your personal BECE & WASSCE study assistant</p>
           </div>
-          <div style={styles.onlineDot} />
+          <div style={styles.headerBtns}>
+            <button onClick={startNewChat} style={styles.newChatBtn}>+ New Chat</button>
+            <button onClick={() => setShowHistory(!showHistory)} style={styles.historyBtn}>
+              📋 History
+            </button>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div style={styles.messagesContainer}>
-          {messages.length === 1 && (
-            <div style={styles.quickPrompts}>
-              <p style={styles.quickLabel}>Try asking:</p>
-              <div style={styles.promptsGrid}>
-                {quickPrompts.map((prompt, i) => (
-                  <button
-                    key={i}
-                    style={styles.promptChip}
-                    onClick={() => setInput(prompt.substring(2).trim())}
-                  >
-                    {prompt}
+        <div style={styles.body}>
+          {/* History Panel */}
+          {showHistory && (
+            <div style={styles.historyPanel}>
+              <h3 style={styles.historyTitle}>💬 Chat History</h3>
+              {history.length === 0 ? (
+                <p style={{ color: '#888', fontSize: 13, textAlign: 'center', padding: 20 }}>No history yet</p>
+              ) : (
+                history.map(h => (
+                  <div key={h.session_id} style={styles.historyItem}
+                    onClick={() => loadSession(h.session_id)}>
+                    <div style={{ flex: 1 }}>
+                      <p style={styles.historyMsg}>{h.first_message?.substring(0, 50) || 'Chat session'}...</p>
+                      <p style={styles.historyDate}>{new Date(h.started_at).toLocaleDateString()} • {h.message_count} messages</p>
+                    </div>
+                    <button onClick={e => deleteSession(h.session_id, e)} style={styles.deleteHistBtn}>🗑️</button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Chat Area */}
+          <div style={styles.chatArea}>
+            <div style={styles.messages}>
+              {messages.map((m, i) => (
+                <div key={i} style={{ ...styles.msgRow, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                  {m.role === 'assistant' && <span style={styles.botAvatar}>🤖</span>}
+                  <div style={{ ...styles.bubble, ...(m.role === 'user' ? styles.userBubble : styles.botBubble) }}>
+                    <p style={styles.bubbleText}>{m.message}</p>
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div style={{ ...styles.msgRow, justifyContent: 'flex-start' }}>
+                  <span style={styles.botAvatar}>🤖</span>
+                  <div style={styles.botBubble}>
+                    <p style={styles.bubbleText}>Thinking... ⏳</p>
+                  </div>
+                </div>
+              )}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Quick Prompts */}
+            {messages.length <= 1 && (
+              <div style={styles.quickPrompts}>
+                {quickPrompts.map(p => (
+                  <button key={p} style={styles.quickBtn}
+                    onClick={() => { setInput(p); }}>
+                    {p}
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            )}
 
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              style={{
-                ...styles.messageBubble,
-                ...(msg.role === 'user' ? styles.userBubble : styles.aiBubble)
-              }}
-            >
-              {msg.role === 'assistant' && (
-                <div style={styles.aiLabel}>🤖 AI Tutor</div>
-              )}
-              <p style={{
-                ...styles.messageText,
-                color: msg.role === 'user' ? '#fff' : '#333'
-              }}>
-                {msg.content}
-              </p>
+            {/* Input */}
+            <div style={styles.inputRow}>
+              <input
+                value={input}
+                onChange={e => setInput(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && sendMessage()}
+                placeholder="Ask me anything about BECE/WASSCE..."
+                style={styles.inputField}
+              />
+              <button onClick={sendMessage} style={styles.sendBtn} disabled={loading || !input.trim()}>
+                ➤
+              </button>
             </div>
-          ))}
-
-          {loading && (
-            <div style={{ ...styles.messageBubble, ...styles.aiBubble }}>
-              <div style={styles.aiLabel}>🤖 AI Tutor</div>
-              <div style={styles.typingIndicator}>
-                <span style={styles.dot} />
-                <span style={{ ...styles.dot, animationDelay: '0.2s' }} />
-                <span style={{ ...styles.dot, animationDelay: '0.4s' }} />
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+          </div>
         </div>
-
-        {/* Input */}
-        <div style={styles.inputContainer}>
-          <textarea
-            style={styles.input}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about BECE or WASSCE..."
-            rows={2}
-          />
-          <button
-            style={{
-              ...styles.sendBtn,
-              opacity: (!input.trim() || loading) ? 0.5 : 1
-            }}
-            onClick={sendMessage}
-            disabled={!input.trim() || loading}
-          >
-            ➤
-          </button>
-        </div>
-
-        <style>{`
-          @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-          }
-        `}</style>
       </div>
     </div>
   );
 };
 
 const styles = {
-  container:         { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  main:              { marginLeft: 220, flex: 1, display: 'flex', flexDirection: 'column', height: '100vh' },
-  header:            { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  headerLeft:        { display: 'flex', alignItems: 'center', gap: 12 },
-  aiAvatar:          { width: 44, height: 44, borderRadius: 22, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 },
-  headerTitle:       { fontSize: 18, fontWeight: 'bold', color: '#fff', margin: 0 },
-  headerSub:         { fontSize: 12, color: '#AED6F1', margin: 0 },
-  onlineDot:         { width: 10, height: 10, borderRadius: 5, background: '#27AE60', boxShadow: '0 0 6px #27AE60' },
-  messagesContainer: { flex: 1, overflowY: 'auto', padding: '16px 16px 8px' },
-  quickPrompts:      { marginBottom: 16 },
-  quickLabel:        { fontSize: 13, color: '#888', marginBottom: 8 },
-  promptsGrid:       { display: 'flex', flexDirection: 'column', gap: 8 },
-  promptChip:        { background: '#fff', border: '1px solid #ddd', borderRadius: 20, padding: '8px 14px', fontSize: 13, color: '#2E86AB', cursor: 'pointer', textAlign: 'left', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  messageBubble:     { marginBottom: 12, maxWidth: '85%' },
-  userBubble:        { marginLeft: 'auto', background: 'linear-gradient(135deg, #2E86AB, #1A5276)', borderRadius: '16px 16px 4px 16px', padding: '12px 16px' },
-  aiBubble:          { marginRight: 'auto', background: '#fff', borderRadius: '16px 16px 16px 4px', padding: '12px 16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  aiLabel:           { fontSize: 11, color: '#2E86AB', fontWeight: 'bold', marginBottom: 6 },
-  messageText:       { fontSize: 14, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' },
-  typingIndicator:   { display: 'flex', gap: 4, alignItems: 'center', height: 20 },
-  dot:               { width: 8, height: 8, borderRadius: 4, background: '#2E86AB', display: 'inline-block', animation: 'bounce 1.4s infinite ease-in-out' },
-  inputContainer:    { display: 'flex', gap: 8, padding: '12px 16px', background: '#fff', borderTop: '1px solid #eee' },
-  input:             { flex: 1, padding: '10px 14px', border: '1px solid #ddd', borderRadius: 20, fontSize: 14, resize: 'none', fontFamily: 'Arial, sans-serif' },
-  sendBtn:           { width: 44, height: 44, borderRadius: 22, background: 'linear-gradient(135deg, #2E86AB, #1A5276)', color: '#fff', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, alignSelf: 'flex-end', border: 'none' },
+  container:    { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
+  main:         { marginLeft: 235, flex: 1, display: 'flex', flexDirection: 'column', height: '100vh' },
+  header:       { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 },
+  title:        { fontSize: 22, fontWeight: 'bold', color: '#fff', margin: 0 },
+  subtitle:     { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 4 },
+  headerBtns:   { display: 'flex', gap: 8 },
+  newChatBtn:   { background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
+  historyBtn:   { background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '8px 14px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
+  body:         { display: 'flex', flex: 1, overflow: 'hidden' },
+  historyPanel: { width: 260, background: '#fff', borderRight: '1px solid #eee', overflowY: 'auto', padding: 16, flexShrink: 0 },
+  historyTitle: { fontSize: 15, fontWeight: 'bold', color: '#1A5276', margin: '0 0 12px' },
+  historyItem:  { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 8, cursor: 'pointer', marginBottom: 6, background: '#f8f9fa', border: '1px solid #eee' },
+  historyMsg:   { fontSize: 13, color: '#333', margin: '0 0 4px', fontWeight: 'bold' },
+  historyDate:  { fontSize: 11, color: '#888', margin: 0 },
+  deleteHistBtn:{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, flexShrink: 0 },
+  chatArea:     { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  messages:     { flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 },
+  msgRow:       { display: 'flex', gap: 10, alignItems: 'flex-end' },
+  botAvatar:    { fontSize: 24, flexShrink: 0 },
+  bubble:       { maxWidth: '70%', borderRadius: 16, padding: '12px 16px' },
+  userBubble:   { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', color: '#fff', borderBottomRightRadius: 4 },
+  botBubble:    { background: '#fff', color: '#333', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderBottomLeftRadius: 4 },
+  bubbleText:   { fontSize: 14, lineHeight: 1.6, margin: 0, whiteSpace: 'pre-wrap' },
+  quickPrompts: { padding: '0 24px 16px', display: 'flex', gap: 8, flexWrap: 'wrap' },
+  quickBtn:     { background: '#EAF4FB', color: '#2E86AB', border: '1px solid #2E86AB33', borderRadius: 20, padding: '8px 14px', fontSize: 13, cursor: 'pointer', fontWeight: 'bold' },
+  inputRow:     { padding: '12px 24px', borderTop: '1px solid #eee', display: 'flex', gap: 10, flexShrink: 0 },
+  inputField:   { flex: 1, padding: '12px 16px', border: '1.5px solid #ddd', borderRadius: 24, fontSize: 14, outline: 'none' },
+  sendBtn:      { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', color: '#fff', border: 'none', borderRadius: '50%', width: 44, height: 44, fontSize: 18, cursor: 'pointer', flexShrink: 0 },
 };
 
 export default AiTutor;

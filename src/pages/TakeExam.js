@@ -98,7 +98,7 @@ const TakeExam = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1 }}>
+        <div style={{ marginLeft: 235, flex: 1 }}>
           <div style={styles.resultContainer}>
             <div style={{ fontSize: 64, textAlign: 'center' }}>
               {passed ? '🎉' : '📚'}
@@ -141,7 +141,7 @@ const TakeExam = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1 }}>
+        <div style={{ marginLeft: 235, flex: 1 }}>
           <div style={{ padding: 40, textAlign: 'center' }}>
             <p style={{ fontSize: 48 }}>❌</p>
             <h3 style={{ color: '#E74C3C', margin: '16px 0 8px' }}>Error</h3>
@@ -160,7 +160,7 @@ const TakeExam = () => {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8', alignItems: 'center', justifyContent: 'center' }}>
         <BottomNav />
-        <div style={{ marginLeft: 220, flex: 1, textAlign: 'center' }}>
+        <div style={{ marginLeft: 235, flex: 1, textAlign: 'center' }}>
           <p style={{ color: '#888' }}>Loading exam...</p>
         </div>
       </div>
@@ -175,7 +175,7 @@ const TakeExam = () => {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f0f4f8' }}>
       <BottomNav />
-      <div style={{ marginLeft: 220, flex: 1 }}>
+      <div style={{ marginLeft: 235, flex: 1 }}>
         {/* Header */}
         <div style={styles.examHeader}>
           <div style={styles.examHeaderTop}>

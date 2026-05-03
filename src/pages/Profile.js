@@ -132,7 +132,7 @@ const InfoRow = ({ label, value }) => (
 
 const styles = {
   container:   { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  main:        { marginLeft: 220, flex: 1 },
+  main:        { marginLeft: 235, flex: 1 },
   header:      { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', padding: '32px 20px 28px', textAlign: 'center' },
   avatar:      { width: 80, height: 80, borderRadius: 40, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' },
   avatarText:  { fontSize: 36, fontWeight: 'bold', color: '#fff' },

@@ -251,7 +251,7 @@ const ActionCard = ({ icon, title, subtitle, color, bg, onClick }) => (
 
 const styles = {
   container:       { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  main:            { marginLeft: 220, flex: 1, paddingBottom: 20 },
+  main:            { marginLeft: 235, flex: 1, paddingBottom: 20 },
   header:          { background: 'linear-gradient(135deg, #1A5276 0%, #2E86AB 100%)', padding: '28px 24px 24px' },
   headerContent:   { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   logo:            { fontSize: 20, fontWeight: 'bold', letterSpacing: 3, margin: '0 0 8px', color: 'rgba(255,255,255,0.8)' },

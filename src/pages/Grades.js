@@ -169,12 +169,12 @@ const Grades = () => {
         </div>
       </div>
     </div>
-  );
+  ); 
 };
 
 const styles = {
   container:        { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  main:             { marginLeft: 220, flex: 1 },
+  main:             { marginLeft: 235, flex: 1 },
   header:           { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', padding: '28px 24px 24px' },
   headerTitle:      { fontSize: 24, fontWeight: 'bold', color: '#fff', margin: 0 },
   headerSub:        { fontSize: 13, color: '#AED6F1', marginTop: 4 },
