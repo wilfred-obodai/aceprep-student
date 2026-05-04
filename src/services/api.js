@@ -141,13 +141,16 @@ export const deleteVideoRoom     = (id)   => API.delete(`/video-rooms/${id}`);
 export const getTeachers  = () => API.get('/schools/teachers');
 export const addTeacher   = (data) => API.post('/auth/register/teacher', data);
 
-// ══════════════════════════════════════════════
 // PARENT API FUNCTIONS
-// ══════════════════════════════════════════════
 export const getChildProgress   = ()     => API.get('/parents/child-progress');
 export const getChildGrades     = ()     => API.get('/parents/child-grades');
 export const getChildAttendance = ()     => API.get('/parents/child-attendance');
 export const getParentMessages  = ()     => API.get('/messages/inbox');
 export const sendParentMessage  = (data) => API.post('/messages/send', data);
+
+// Notifications
+export const getNotifications  = () => API.get('/notifications');
+export const markAllRead       = () => API.put('/notifications/read-all');
+export const markNotifRead     = (id) => API.put(`/notifications/${id}/read`);
 
 export default API;

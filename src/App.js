@@ -60,6 +60,10 @@ import ResetPassword from './pages/ResetPassword';
 import PastQuestionsPDF   from './pages/admin/PastQuestionsPDF';
 import PerformanceReport  from './pages/admin/PerformanceReport';
 import Certificates       from './pages/admin/Certificates';
+import Notifications  from './pages/Notifications';
+import StudyPlanner   from './pages/StudyPlanner';
+import SchoolSearch   from './pages/admin/SchoolSearch';
+import Referral       from './pages/admin/Referral';
 
 // ── Parent Pages ───────────────────────────────
 import ParentDashboard   from './pages/parent/Dashboard';
@@ -142,6 +146,8 @@ const App = () => {
           <Route path="/video"         element={<StudentRoute><VideoRoom /></StudentRoute>} />
           <Route path="/countdown"     element={<StudentRoute><ExamCountdown /></StudentRoute>} />
           <Route path="/teachers"      element={<StudentRoute><Teachers /></StudentRoute>} />
+          <Route path="/notifications" element={<StudentRoute><Notifications /></StudentRoute>} />
+          <Route path="/planner"       element={<StudentRoute><StudyPlanner /></StudentRoute>} />
 
           {/* ── Admin Routes ─────────────────────── */}
           <Route path="/admin"                       element={<AdminRoute><AdminDashboard /></AdminRoute>} />
@@ -167,8 +173,10 @@ const App = () => {
           <Route path="/admin/ai-questions"          element={<AdminRoute><AIQuestionGenerator /></AdminRoute>} />
           <Route path="/admin/past-questions-pdf" element={<AdminRoute><PastQuestionsPDF /></AdminRoute>} />
           <Route path="/admin/past-questions-pdf"  element={<AdminRoute><PastQuestionsPDF /></AdminRoute>} />
-<Route path="/admin/performance-report"  element={<AdminRoute><PerformanceReport /></AdminRoute>} />
-<Route path="/admin/certificates"        element={<AdminRoute><Certificates /></AdminRoute>} />
+          <Route path="/admin/performance-report"  element={<AdminRoute><PerformanceReport /></AdminRoute>} />
+          <Route path="/admin/certificates"        element={<AdminRoute><Certificates /></AdminRoute>} />
+          <Route path="/admin/school-search" element={<AdminRoute><SchoolSearch /></AdminRoute>} />
+          <Route path="/admin/referral"      element={<AdminRoute><Referral /></AdminRoute>} />
 
           {/* ── Parent Routes ────────────────────── */}
           <Route path="/parent"              element={<ParentRoute><ParentDashboard /></ParentRoute>} />

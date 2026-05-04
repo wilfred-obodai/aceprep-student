@@ -23,6 +23,8 @@ const navLinks = [
   { path: '/admin/ai-questions',     icon: '🤖', label: 'AI Questions' },
   { path: '/admin/teachers',         icon: '👨‍🏫', label: 'Teachers' },
   { path: '/admin/settings',         icon: '⚙️',  label: 'Settings' },
+  { path: '/admin/school-search', icon: '🔍', label: 'Find Schools' },
+  { path: '/admin/referral',      icon: '🎁', label: 'Referral' },
 ];
 
 // Ghana flag colors

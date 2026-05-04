@@ -3,34 +3,25 @@ import ParentSidebar from '../../components/ParentSidebar';
 import API from '../../services/api';
 
 const ParentMessages = () => {
-  const [inbox,    setInbox]    = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [selected, setSelected] = useState(null);
+  const [inbox,       setInbox]       = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [selected,    setSelected]    = useState(null);
   const [showCompose, setShowCompose] = useState(false);
-  const [teachers, setTeachers]  = useState([]);
-  const [composeData, setComposeData] = useState({ to: '', subject: '', message: '' });
-  const [sending,  setSending]   = useState(false);
-  const [sentMsg,  setSentMsg]   = useState('');
+  const [teachers,    setTeachers]    = useState([]);
+  const [form,        setForm]        = useState({ to: '', subject: '', message: '' });
+  const [sending,     setSending]     = useState(false);
+  const [sentMsg,     setSentMsg]     = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const [inboxRes, progressRes] = await Promise.all([
+      const [inboxRes, teachersRes] = await Promise.all([
         API.get('/messages/inbox'),
-        API.get('/parents/child-progress'),
+        API.get('/parents/school-teachers'),
       ]);
-      if (inboxRes.data.success)   setInbox(inboxRes.data.messages || []);
-      if (progressRes.data.success && progressRes.data.student) {
-        // Get school teachers
-        const schoolId = progressRes.data.student.schoolId;
-        try {
-          const teachersRes = await API.get('/schools/teachers');
-          setTeachers(teachersRes.data.teachers || []);
-        } catch (e) { console.error(e); }
-      }
+      if (inboxRes.data.success)    setInbox(inboxRes.data.messages || []);
+      if (teachersRes.data.success) setTeachers(teachersRes.data.teachers || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
@@ -41,15 +32,17 @@ const ParentMessages = () => {
     setSentMsg('');
     try {
       await API.post('/messages/send', {
-        recipientId:   composeData.to,
+        recipientId:   form.to,
         recipientType: 'teacher',
-        message:       `[${composeData.subject}]\n\n${composeData.message}`,
+        subject:       form.subject,
+        message:       form.message,
       });
       setSentMsg('✅ Message sent successfully!');
-      setComposeData({ to: '', subject: '', message: '' });
+      setForm({ to: '', subject: '', message: '' });
       fetchData();
+      setTimeout(() => { setShowCompose(false); setSentMsg(''); }, 2000);
     } catch (e) {
-      setSentMsg('❌ Failed to send message. Please try again.');
+      setSentMsg('❌ Failed to send. Please try again.');
     } finally {
       setSending(false);
     }
@@ -62,7 +55,7 @@ const ParentMessages = () => {
         <div style={styles.header}>
           <div>
             <h1 style={styles.title}>✉️ Messages</h1>
-            <p style={styles.subtitle}>Messages from your child's school</p>
+            <p style={styles.subtitle}>Communicate with your child's school</p>
           </div>
           <button style={styles.composeBtn} onClick={() => setShowCompose(!showCompose)}>
             ✏️ Message School
@@ -70,36 +63,44 @@ const ParentMessages = () => {
         </div>
 
         <div style={styles.content}>
-          {/* Compose Form */}
+          {/* Compose */}
           {showCompose && (
             <div style={styles.composeCard}>
               <h3 style={styles.composeTitle}>✏️ Send Message to School</h3>
-              <form onSubmit={handleSend} style={styles.composeForm}>
+              <form onSubmit={handleSend} style={styles.form}>
                 <div style={styles.field}>
-                  <label style={styles.label}>Send To</label>
-                  <select style={styles.input} value={composeData.to}
-                    onChange={e => setComposeData({...composeData, to: e.target.value})} required>
+                  <label style={styles.label}>Send To *</label>
+                  <select style={styles.input} value={form.to}
+                    onChange={e => setForm({...form, to: e.target.value})} required>
                     <option value="">Select teacher/admin...</option>
+                    {teachers.length === 0 && (
+                      <option disabled>No teachers found — link your child first</option>
+                    )}
                     {teachers.map(t => (
-                      <option key={t.id} value={t.id}>{t.fullName} — {t.role}</option>
+                      <option key={t.id} value={t.id}>
+                        {t.fullName} — {t.role === 'admin' ? '🏫 Admin' : '👨‍🏫 Teacher'}
+                        {t.phone ? ` (${t.phone})` : ''}
+                      </option>
                     ))}
                   </select>
                 </div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Subject</label>
-                  <input style={styles.input} value={composeData.subject}
-                    onChange={e => setComposeData({...composeData, subject: e.target.value})}
+                  <label style={styles.label}>Subject *</label>
+                  <input style={styles.input} value={form.subject}
+                    onChange={e => setForm({...form, subject: e.target.value})}
                     placeholder="e.g. Regarding my child's performance" required />
                 </div>
                 <div style={styles.field}>
-                  <label style={styles.label}>Message</label>
-                  <textarea style={{ ...styles.input, minHeight: 100, resize: 'vertical' }}
-                    value={composeData.message}
-                    onChange={e => setComposeData({...composeData, message: e.target.value})}
-                    placeholder="Type your message here..." required />
+                  <label style={styles.label}>Message *</label>
+                  <textarea
+                    style={{ ...styles.input, minHeight: 100, resize: 'vertical' }}
+                    value={form.message}
+                    onChange={e => setForm({...form, message: e.target.value})}
+                    placeholder="Type your message here..."
+                    required />
                 </div>
                 {sentMsg && (
-                  <p style={{ color: sentMsg.includes('✅') ? '#006B3F' : '#CE1126', fontSize: 14 }}>
+                  <p style={{ color: sentMsg.includes('✅') ? '#006B3F' : '#CE1126', fontSize: 14, margin: 0 }}>
                     {sentMsg}
                   </p>
                 )}
@@ -108,7 +109,7 @@ const ParentMessages = () => {
                     {sending ? 'Sending...' : '📤 Send Message'}
                   </button>
                   <button type="button" style={styles.cancelBtn}
-                    onClick={() => { setShowCompose(false); setSentMsg(''); }}>
+                    onClick={() => { setShowCompose(false); setSentMsg(''); setForm({ to: '', subject: '', message: '' }); }}>
                     Cancel
                   </button>
                 </div>
@@ -119,23 +120,27 @@ const ParentMessages = () => {
           {/* Inbox */}
           <div style={styles.inboxCard}>
             <h3 style={styles.inboxTitle}>📥 Inbox ({inbox.length})</h3>
-            {loading ? <p style={styles.center}>Loading...</p> :
-             inbox.length === 0 ? (
+            {loading ? (
+              <p style={styles.center}>Loading...</p>
+            ) : inbox.length === 0 ? (
               <div style={styles.empty}>
                 <p style={{ fontSize: 48 }}>✉️</p>
-                <p style={{ color: '#888', fontSize: 14 }}>No messages yet. Messages from teachers will appear here.</p>
+                <h3 style={{ color: '#CE1126' }}>No messages yet</h3>
+                <p style={{ color: '#888', fontSize: 14 }}>Messages from teachers will appear here.</p>
               </div>
             ) : (
               inbox.map((msg, i) => (
                 <div key={i}
-                  style={{ ...styles.messageCard, borderLeft: msg.is_read ? '3px solid #ddd' : '3px solid #CE1126' }}
+                  style={{ ...styles.msgCard, borderLeft: msg.is_read ? '3px solid #ddd' : '3px solid #CE1126' }}
                   onClick={() => setSelected(msg)}>
                   <div style={styles.msgTop}>
                     <span style={styles.msgFrom}>👤 {msg.sender_name || 'Teacher'}</span>
                     <span style={styles.msgDate}>{new Date(msg.created_at).toLocaleDateString()}</span>
                   </div>
+                  {msg.subject && <p style={styles.msgSubject}>{msg.subject}</p>}
                   <p style={styles.msgText}>
-                    {msg.message?.substring(0, 100)}{msg.message?.length > 100 ? '...' : ''}
+                    {(msg.message || msg.content)?.substring(0, 100)}
+                    {(msg.message || msg.content)?.length > 100 ? '...' : ''}
                   </p>
                   {!msg.is_read && <span style={styles.unreadBadge}>New</span>}
                 </div>
@@ -144,19 +149,28 @@ const ParentMessages = () => {
           </div>
         </div>
 
-        {/* Message Modal */}
+        {/* Modal */}
         {selected && (
           <div style={styles.modal} onClick={() => setSelected(null)}>
             <div style={styles.modalCard} onClick={e => e.stopPropagation()}>
               <div style={styles.modalHeader}>
-                <h3 style={{ margin: 0, color: '#fff' }}>From: {selected.sender_name}</h3>
+                <div>
+                  <h3 style={{ margin: 0, color: '#fff' }}>From: {selected.sender_name || 'Teacher'}</h3>
+                  {selected.subject && (
+                    <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '4px 0 0' }}>
+                      {selected.subject}
+                    </p>
+                  )}
+                </div>
                 <button onClick={() => setSelected(null)} style={styles.closeBtn}>✕</button>
               </div>
               <div style={styles.modalBody}>
-                <p style={{ color: '#888', fontSize: 12, marginBottom: 12 }}>
+                <p style={{ color: '#888', fontSize: 12, marginBottom: 16 }}>
                   {new Date(selected.created_at).toLocaleString()}
                 </p>
-                <p style={{ color: '#333', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{selected.message}</p>
+                <p style={{ color: '#333', lineHeight: 1.8, fontSize: 15, whiteSpace: 'pre-wrap' }}>
+                  {selected.message || selected.content}
+                </p>
               </div>
             </div>
           </div>
@@ -176,7 +190,7 @@ const styles = {
   content:      { padding: 20, display: 'flex', flexDirection: 'column', gap: 20 },
   composeCard:  { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderTop: '4px solid #CE1126' },
   composeTitle: { fontSize: 16, fontWeight: 'bold', color: '#CE1126', margin: '0 0 16px' },
-  composeForm:  { display: 'flex', flexDirection: 'column', gap: 14 },
+  form:         { display: 'flex', flexDirection: 'column', gap: 14 },
   field:        { display: 'flex', flexDirection: 'column', gap: 6 },
   label:        { fontSize: 13, fontWeight: 'bold', color: '#555' },
   input:        { padding: '11px 14px', border: '1.5px solid #ddd', borderRadius: 10, fontSize: 14, width: '100%' },
@@ -186,10 +200,11 @@ const styles = {
   inboxTitle:   { fontSize: 16, fontWeight: 'bold', color: '#1A5276', margin: '0 0 16px' },
   center:       { textAlign: 'center', color: '#888', padding: 20 },
   empty:        { textAlign: 'center', padding: '30px 20px' },
-  messageCard:  { background: '#f8f9fa', borderRadius: 10, padding: '14px 16px', marginBottom: 10, cursor: 'pointer', position: 'relative', border: '1px solid #eee' },
-  msgTop:       { display: 'flex', justifyContent: 'space-between', marginBottom: 6 },
+  msgCard:      { background: '#f8f9fa', borderRadius: 10, padding: '14px 16px', marginBottom: 10, cursor: 'pointer', position: 'relative', border: '1px solid #eee' },
+  msgTop:       { display: 'flex', justifyContent: 'space-between', marginBottom: 4 },
   msgFrom:      { fontWeight: 'bold', color: '#1A5276', fontSize: 14 },
   msgDate:      { color: '#888', fontSize: 12 },
+  msgSubject:   { fontSize: 13, fontWeight: 'bold', color: '#CE1126', margin: '0 0 4px' },
   msgText:      { color: '#555', fontSize: 13, margin: 0, lineHeight: 1.5 },
   unreadBadge:  { position: 'absolute', top: 10, right: 10, background: '#CE1126', color: '#fff', fontSize: 11, fontWeight: 'bold', padding: '2px 8px', borderRadius: 10 },
   modal:        { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 },

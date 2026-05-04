@@ -23,6 +23,8 @@ const navLinks = [
   { path: '/teachers',  icon: '👨‍🏫', label: 'Teachers' },
   { path: '/video',     icon: '🎥', label: 'Video Rooms' },
   { path: '/profile',   icon: '👤', label: 'Profile' },
+  { path: '/notifications', icon: '🔔', label: 'Notifications' },
+  { path: '/planner',       icon: '🎯', label: 'Study Planner' },
 ];
 
 // Ghana flag colors for active links
