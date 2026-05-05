@@ -98,8 +98,8 @@ const Referral = () => {
               <div style={styles.shareRow}>
                 <p style={styles.shareLabel}>Share via:</p>
                 <button style={styles.whatsappBtn}
-                  onClick={() => window.open(`https://wa.me/?text=Join AcePrep - Ghana's #1 BECE/WASSCE platform! Register here: https://aceprep.gh/register?ref=${school?.code}`)}>
-                  📱 WhatsApp
+                 onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`🇬🇭 *Join AcePrep — Ghana's #1 BECE & WASSCE Prep Platform!*\n\n✅ Past Questions (PDF + MCQ)\n✅ AI Tutor that solves questions\n✅ Real-time grades & attendance\n✅ Quiz Battle between schools\n✅ FREE until January 2027!\n\n🔗 Register your school here:\nhttps://aceprep.gh/register?ref=${school?.code}\n\n📌 Use referral code: *${school?.code}*`)}`)}>
+                 📱 WhatsApp
                 </button>
                 <button style={styles.emailShareBtn}
                   onClick={() => window.open(`mailto:?subject=Join AcePrep&body=Register your school at: https://aceprep.gh/register?ref=${school?.code}`)}>

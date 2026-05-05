@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/AdminSidebar';
+import AdminSidebar from '../../components/AdminSidebar';
 import { getStudentGrades } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -17,17 +17,17 @@ const gradeColor = (letter) => {
 };
 
 const StudentProfile = () => {
-  const { id }     = useParams();
-  const navigate   = useNavigate();
-  const { token }  = useAuth();
-  const [data,         setData]         = useState(null);
-  const [loading,      setLoading]      = useState(true);
-  const [downloading,  setDownloading]  = useState(false);
-  const [sending,      setSending]      = useState(false);
-  const [sendMsg,      setSendMsg]      = useState('');
-  const [showEmailForm,setShowEmailForm]= useState(false);
-  const [parentEmail,  setParentEmail]  = useState('');
-  const [parentName,   setParentName]   = useState('');
+  const { id }    = useParams();
+  const navigate  = useNavigate();
+  const { token } = useAuth();
+  const [data,          setData]          = useState(null);
+  const [loading,       setLoading]       = useState(true);
+  const [downloading,   setDownloading]   = useState(false);
+  const [sendMsg,       setSendMsg]       = useState('');
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [parentEmail,   setParentEmail]   = useState('');
+  const [parentName,    setParentName]    = useState('');
+  const [tab,           setTab]           = useState('grades');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,10 +47,8 @@ const StudentProfile = () => {
     setDownloading(true);
     try {
       const url = `http://localhost:5000/api/report-card/${id}?academicYear=2026`;
-      const res  = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const blob    = await res.blob();
+      const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      const blob = await res.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       const link    = document.createElement('a');
       link.href     = blobUrl;
@@ -58,246 +56,209 @@ const StudentProfile = () => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
     } catch (e) {
-      alert('Failed to download report card. Please try again.');
+      alert('Failed to download report card');
     } finally {
       setDownloading(false);
     }
   };
 
-  const sendToParent = async () => {
-    if (!parentEmail) return;
-    setSending(true);
-    setSendMsg('');
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/report-card/${id}/send-email`,
-        {
-          method:  'POST',
-          headers: {
-            'Content-Type':  'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            parentEmail,
-            parentName,
-            academicYear: '2026'
-          })
-        }
-      );
-      const resData = await res.json();
-      if (resData.success) {
-        setSendMsg('✅ Report card sent to parent successfully!');
-        setShowEmailForm(false);
-        setParentEmail('');
-        setParentName('');
-      } else {
-        setSendMsg(`❌ ${resData.message}`);
-      }
-    } catch (e) {
-      setSendMsg('❌ Failed to send email. Please try again.');
-    } finally {
-      setSending(false);
-    }
+  const shareOnWhatsApp = () => {
+    const student = data?.student;
+    const grades  = data?.grades || [];
+    const avg     = grades.length > 0
+      ? Math.round(grades.reduce((s, g) => s + parseFloat(g.percentage || 0), 0) / grades.length)
+      : 0;
+    const msg = `🎓 *${student?.fullName}'s AcePrep Report*\n\n📊 Average Score: *${avg}%*\n📚 Level: ${student?.level} Year ${student?.yearGroup}\n🏫 School: ${student?.schoolName}\n\n📱 Track progress on AcePrep Ghana 🇬🇭`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
   };
 
   if (loading) return (
     <div style={styles.layout}>
-      <Sidebar />
-      <div style={styles.main}>
-        <p style={styles.loading}>Loading student profile...</p>
-      </div>
+      <AdminSidebar />
+      <div style={styles.main}><p style={styles.center}>Loading student profile...</p></div>
     </div>
   );
 
-  if (!data) return (
+  if (!data || !data.student) return (
     <div style={styles.layout}>
-      <Sidebar />
+      <AdminSidebar />
       <div style={styles.main}>
-        <p style={styles.loading}>Student not found</p>
+        <p style={styles.center}>Student not found.</p>
+        <button onClick={() => navigate('/admin/students')} style={styles.backBtn}>← Back to Students</button>
       </div>
     </div>
   );
 
-  const { student, summary, grades } = data;
-  const gc = gradeColor(summary.overallGrade);
+  const student   = data.student;
+  const grades    = data.grades || [];
+  const avgScore  = grades.length > 0
+    ? Math.round(grades.reduce((s, g) => s + parseFloat(g.percentage || 0), 0) / grades.length)
+    : 0;
+
+  const subjectMap = grades.reduce((acc, g) => {
+    if (!acc[g.subject]) acc[g.subject] = [];
+    acc[g.subject].push(parseFloat(g.percentage || 0));
+    return acc;
+  }, {});
+
+  const subjectAverages = Object.entries(subjectMap).map(([subject, scores]) => ({
+    subject,
+    average: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+    count:   scores.length,
+  })).sort((a, b) => b.average - a.average);
 
   return (
     <div style={styles.layout}>
-      <Sidebar />
+      <AdminSidebar />
       <div style={styles.main}>
 
-        {/* Back button */}
-        <button style={styles.backBtn} onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-
-        {/* Student Header */}
-        <div style={styles.profileCard}>
-          <div style={styles.avatar}>
-            {student.fullName.charAt(0).toUpperCase()}
-          </div>
-          <div style={styles.profileInfo}>
-            <h1 style={styles.studentName}>{student.fullName}</h1>
-            <p style={styles.studentMeta}>
-              {student.email} &nbsp;|&nbsp;
-              {student.level} Year {student.yearGroup} &nbsp;|&nbsp;
-              Class {student.className || '—'}
-            </p>
-
-            {/* Action Buttons */}
-            <div style={styles.actionBtns}>
-              <button
-                style={styles.reportBtn}
-                onClick={downloadReportCard}
-                disabled={downloading}
-              >
-                {downloading ? '⏳ Generating...' : '📄 Download Report Card'}
+        {/* Header */}
+        <div style={styles.header}>
+          <button onClick={() => navigate('/admin/students')} style={styles.backBtn}>← Back to Students</button>
+          <div style={styles.headerContent}>
+            <div style={styles.avatar}>{student.fullName?.charAt(0).toUpperCase()}</div>
+            <div>
+              <h1 style={styles.studentName}>{student.fullName}</h1>
+              <p style={styles.studentMeta}>
+                {student.level} • Year {student.yearGroup}
+                {student.className ? ` • Class ${student.className}` : ''}
+                {student.shsTrack ? ` • ${student.shsTrack}` : ''}
+              </p>
+              <p style={styles.studentEmail}>{student.email}</p>
+            </div>
+            <div style={styles.headerActions}>
+              <button onClick={downloadReportCard} style={styles.reportBtn} disabled={downloading}>
+                {downloading ? '⏳ Generating...' : '📄 Report Card'}
               </button>
-
-              <button
-                style={styles.emailBtn}
-                onClick={() => { setShowEmailForm(!showEmailForm); setSendMsg(''); }}
-              >
-                📧 Send to Parent
+              <button onClick={shareOnWhatsApp} style={styles.whatsappBtn}>
+                📱 Share on WhatsApp
               </button>
             </div>
-
-            {/* Email Form */}
-            {showEmailForm && (
-              <div style={styles.emailForm}>
-                <p style={styles.emailFormTitle}>Send Report Card to Parent/Guardian</p>
-                <input
-                  style={styles.emailInput}
-                  type="text"
-                  placeholder="Parent/Guardian Name (Optional)"
-                  value={parentName}
-                  onChange={e => setParentName(e.target.value)}
-                />
-                <input
-                  style={styles.emailInput}
-                  type="email"
-                  placeholder="Parent/Guardian Email *"
-                  value={parentEmail}
-                  onChange={e => setParentEmail(e.target.value)}
-                />
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    style={{
-                      ...styles.emailSendBtn,
-                      opacity: !parentEmail || sending ? 0.6 : 1,
-                      flex: 1,
-                    }}
-                    onClick={sendToParent}
-                    disabled={!parentEmail || sending}
-                  >
-                    {sending ? '⏳ Sending...' : '📤 Send Report Card'}
-                  </button>
-                  <button
-                    style={styles.cancelBtn}
-                    onClick={() => { setShowEmailForm(false); setSendMsg(''); }}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Send Message */}
-            {sendMsg && (
-              <p style={{
-                fontSize:   13,
-                marginTop:  8,
-                color:      sendMsg.includes('✅') ? '#27AE60' : '#E74C3C',
-                fontWeight: 'bold',
-              }}>
-                {sendMsg}
-              </p>
-            )}
-          </div>
-
-          {/* Overall Grade */}
-          <div style={{
-            ...styles.overallGrade,
-            background: gc.bg,
-            color:      gc.color,
-            border:     `2px solid ${gc.color}`,
-          }}>
-            <p style={styles.gradeLabel}>Overall</p>
-            <p style={styles.gradeLetter}>{summary.overallGrade}</p>
-            <p style={styles.gradeAvg}>{summary.overallAverage}%</p>
           </div>
         </div>
 
-        {/* Subject Summary */}
-        <h2 style={styles.sectionTitle}>Subject Performance</h2>
-        <div style={styles.subjectCards}>
-          {summary.subjectSummary.map(s => {
-            const sc = gradeColor(s.gradeLetter);
-            return (
-              <div key={s.subject} style={{
-                ...styles.subjectCard,
-                borderTop: `4px solid ${sc.color}`
-              }}>
-                <p style={styles.subjectName}>{s.subject}</p>
-                <p style={{ ...styles.subjectGrade, color: sc.color }}>
-                  {s.gradeLetter}
-                </p>
-                <p style={styles.subjectAvg}>{s.average}%</p>
-                <p style={styles.subjectCount}>{s.totalTaken} assessments</p>
-              </div>
-            );
-          })}
+        {/* Stats */}
+        <div style={styles.statsGrid}>
+          <StatCard icon="📊" label="Average Score" value={`${avgScore}%`} color={avgScore >= 70 ? '#006B3F' : avgScore >= 50 ? '#b8860b' : '#CE1126'} />
+          <StatCard icon="📝" label="Total Assessments" value={grades.length} color="#2E86AB" />
+          <StatCard icon="📚" label="Subjects" value={subjectAverages.length} color="#8E44AD" />
+          <StatCard icon="🎓" label="Student Type" value={student.studentType || 'School'} color="#F39C12" />
         </div>
 
-        {/* Grade History */}
-        <h2 style={styles.sectionTitle}>Full Grade History</h2>
-        <div style={styles.section}>
-          {grades.length === 0 ? (
-            <p style={styles.empty}>No grades yet</p>
-          ) : (
-            <table style={styles.table}>
-              <thead>
-                <tr style={styles.thead}>
-                  <th style={styles.th}>Subject</th>
-                  <th style={styles.th}>Assessment</th>
-                  <th style={styles.th}>Type</th>
-                  <th style={styles.th}>Score</th>
-                  <th style={styles.th}>Percentage</th>
-                  <th style={styles.th}>Grade</th>
-                  <th style={styles.th}>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {grades.map(g => {
-                  const gc = gradeColor(g.gradeLetter);
-                  return (
-                    <tr key={g.id} style={styles.tr}>
-                      <td style={styles.td}>{g.subject}</td>
-                      <td style={styles.td}>{g.assessmentName}</td>
-                      <td style={styles.td}>
-                        <span style={styles.typeBadge}>{g.assessmentType}</span>
-                      </td>
-                      <td style={styles.td}>{g.score}/{g.maxScore}</td>
-                      <td style={styles.td}>{g.percentage}%</td>
-                      <td style={styles.td}>
-                        <span style={{
-                          ...styles.gradeBadge,
-                          background: gc.bg,
-                          color:      gc.color,
-                        }}>
-                          {g.gradeLetter}
-                        </span>
-                      </td>
-                      <td style={styles.td}>
-                        {new Date(g.takenAt).toLocaleDateString()}
-                      </td>
+        {/* Tabs */}
+        <div style={styles.tabs}>
+          <button style={{ ...styles.tab, ...(tab === 'grades'    ? styles.tabActive : {}) }} onClick={() => setTab('grades')}>📊 Grades</button>
+          <button style={{ ...styles.tab, ...(tab === 'subjects'  ? styles.tabActive : {}) }} onClick={() => setTab('subjects')}>📚 By Subject</button>
+          <button style={{ ...styles.tab, ...(tab === 'info'      ? styles.tabActive : {}) }} onClick={() => setTab('info')}>👤 Info</button>
+        </div>
+
+        <div style={styles.content}>
+          {/* Grades Tab */}
+          {tab === 'grades' && (
+            <div style={styles.card}>
+              <h3 style={styles.cardTitle}>📊 All Grades ({grades.length})</h3>
+              {grades.length === 0 ? (
+                <p style={styles.center}>No grades yet</p>
+              ) : (
+                <table style={styles.table}>
+                  <thead>
+                    <tr style={styles.thead}>
+                      <th style={styles.th}>Subject</th>
+                      <th style={styles.th}>Assessment</th>
+                      <th style={styles.th}>Score</th>
+                      <th style={styles.th}>Grade</th>
+                      <th style={styles.th}>Date</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {grades.map((g, i) => {
+                      const gc = gradeColor(g.grade_letter);
+                      return (
+                        <tr key={i} style={styles.tr}>
+                          <td style={styles.td}><strong>{g.subject}</strong></td>
+                          <td style={styles.td}>{g.assessment_name || g.assessment_type}</td>
+                          <td style={styles.td}><strong>{g.percentage}%</strong></td>
+                          <td style={styles.td}>
+                            <span style={{ ...styles.gradeBadge, background: gc.bg, color: gc.color }}>
+                              {g.grade_letter}
+                            </span>
+                          </td>
+                          <td style={styles.td}>{new Date(g.created_at).toLocaleDateString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          )}
+
+          {/* Subjects Tab */}
+          {tab === 'subjects' && (
+            <div style={styles.card}>
+              <h3 style={styles.cardTitle}>📚 Performance by Subject</h3>
+              {subjectAverages.length === 0 ? (
+                <p style={styles.center}>No grades yet</p>
+              ) : (
+                subjectAverages.map((s, i) => (
+                  <div key={i} style={styles.subjectRow}>
+                    <span style={styles.subjectName}>{s.subject}</span>
+                    <div style={styles.barWrap}>
+                      <div style={{
+                        ...styles.bar,
+                        width: `${s.average}%`,
+                        background: s.average >= 70 ? '#006B3F' : s.average >= 50 ? '#FCD116' : '#CE1126'
+                      }} />
+                    </div>
+                    <span style={{ ...styles.subjectScore, color: s.average >= 70 ? '#006B3F' : s.average >= 50 ? '#b8860b' : '#CE1126' }}>
+                      {s.average}%
+                    </span>
+                    <span style={styles.subjectCount}>{s.count} assessments</span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Info Tab */}
+          {tab === 'info' && (
+            <div style={styles.card}>
+              <h3 style={styles.cardTitle}>👤 Student Information</h3>
+              <div style={styles.infoGrid}>
+                <InfoRow label="Full Name"    value={student.fullName} />
+                <InfoRow label="Email"        value={student.email} />
+                <InfoRow label="Level"        value={student.level} />
+                <InfoRow label="Year Group"   value={`Year ${student.yearGroup}`} />
+                <InfoRow label="Class"        value={student.className || '—'} />
+                <InfoRow label="SHS Track"    value={student.shsTrack || '—'} />
+                <InfoRow label="Student Type" value={student.studentType} />
+                <InfoRow label="School"       value={student.schoolName} />
+                <InfoRow label="Joined"       value={student.joinedAt ? new Date(student.joinedAt).toLocaleDateString() : '—'} />
+              </div>
+
+              {/* Send message to parent */}
+              <div style={styles.parentSection}>
+                <h4 style={{ color: '#1A5276', margin: '0 0 12px' }}>📧 Contact Parent</h4>
+                {!showEmailForm ? (
+                  <button style={styles.contactBtn} onClick={() => setShowEmailForm(true)}>
+                    ✉️ Send Message to Parent
+                  </button>
+                ) : (
+                  <div style={styles.emailForm}>
+                    <input style={styles.input} value={parentName} onChange={e => setParentName(e.target.value)} placeholder="Parent's name" />
+                    <input style={styles.input} type="email" value={parentEmail} onChange={e => setParentEmail(e.target.value)} placeholder="Parent's email" />
+                    {sendMsg && <p style={{ color: sendMsg.includes('✅') ? '#006B3F' : '#CE1126', fontSize: 13 }}>{sendMsg}</p>}
+                    <div style={{ display: 'flex', gap: 10 }}>
+                      <button style={styles.sendBtn} onClick={async () => {
+                        setSendMsg('✅ Feature coming soon! Use WhatsApp share above.');
+                      }}>Send</button>
+                      <button style={styles.cancelBtn} onClick={() => setShowEmailForm(false)}>Cancel</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -305,44 +266,61 @@ const StudentProfile = () => {
   );
 };
 
+const StatCard = ({ icon, label, value, color }) => (
+  <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'center', borderTop: `4px solid ${color}` }}>
+    <p style={{ fontSize: 28, margin: 0 }}>{icon}</p>
+    <p style={{ fontSize: 22, fontWeight: 'bold', color, margin: '6px 0 4px' }}>{value}</p>
+    <p style={{ fontSize: 12, color: '#888', margin: 0 }}>{label}</p>
+  </div>
+);
+
+const InfoRow = ({ label, value }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <p style={{ fontSize: 11, color: '#888', margin: 0, fontWeight: 'bold', textTransform: 'uppercase' }}>{label}</p>
+    <p style={{ fontSize: 14, color: '#1A5276', margin: 0, fontWeight: 'bold' }}>{value || '—'}</p>
+  </div>
+);
+
 const styles = {
   layout:        { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  main:          { marginLeft: 240, flex: 1, padding: '32px 28px' },
-  loading:       { textAlign: 'center', color: '#888', padding: 40 },
-  backBtn:       { background: 'none', border: '1px solid #ddd', borderRadius: 6, padding: '8px 16px', fontSize: 14, color: '#555', marginBottom: 24, cursor: 'pointer' },
-  profileCard:   { background: '#fff', borderRadius: 12, padding: 28, display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 32, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  avatar:        { width: 70, height: 70, borderRadius: '50%', background: '#2E86AB', color: '#fff', fontSize: 28, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  profileInfo:   { flex: 1 },
-  studentName:   { fontSize: 22, fontWeight: 'bold', color: '#1A5276', margin: '0 0 6px' },
-  studentMeta:   { fontSize: 14, color: '#888', marginBottom: 12 },
-  actionBtns:    { display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 8 },
-  reportBtn:     { background: 'linear-gradient(135deg, #27AE60, #1E8449)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
-  emailBtn:      { background: 'linear-gradient(135deg, #8E44AD, #6C3483)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 18px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
-  emailForm:     { background: '#f8f9fa', borderRadius: 10, padding: 16, marginTop: 10, display: 'flex', flexDirection: 'column', gap: 10, border: '1px solid #eee' },
-  emailFormTitle:{ fontSize: 14, fontWeight: 'bold', color: '#1A5276', margin: 0 },
-  emailInput:    { padding: '10px 12px', border: '1px solid #ddd', borderRadius: 8, fontSize: 14 },
-  emailSendBtn:  { background: 'linear-gradient(135deg, #8E44AD, #6C3483)', color: '#fff', border: 'none', borderRadius: 8, padding: '10px', fontSize: 14, fontWeight: 'bold', cursor: 'pointer' },
-  cancelBtn:     { background: '#fff', border: '1px solid #ddd', borderRadius: 8, padding: '10px 16px', fontSize: 14, color: '#555', cursor: 'pointer' },
-  overallGrade:  { textAlign: 'center', borderRadius: 12, padding: '16px 24px', flexShrink: 0 },
-  gradeLabel:    { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', margin: 0 },
-  gradeLetter:   { fontSize: 40, fontWeight: 'bold', lineHeight: 1.2, margin: 0 },
-  gradeAvg:      { fontSize: 14, fontWeight: 'bold', margin: 0 },
-  sectionTitle:  { fontSize: 18, color: '#1A5276', fontWeight: 'bold', marginBottom: 16 },
-  subjectCards:  { display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 32 },
-  subjectCard:   { background: '#fff', borderRadius: 10, padding: '16px 20px', minWidth: 160, boxShadow: '0 2px 8px rgba(0,0,0,0.06)', textAlign: 'center' },
-  subjectName:   { fontSize: 13, color: '#555', marginBottom: 8, fontWeight: 'bold' },
-  subjectGrade:  { fontSize: 32, fontWeight: 'bold', margin: 0 },
-  subjectAvg:    { fontSize: 14, color: '#888', marginTop: 4 },
-  subjectCount:  { fontSize: 12, color: '#aaa', marginTop: 2 },
-  section:       { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
-  empty:         { textAlign: 'center', color: '#888', padding: 40 },
+  main:          { marginLeft: 240, flex: 1 },
+  header:        { background: 'linear-gradient(135deg, #1A5276, #2E86AB)', padding: '20px 24px' },
+  backBtn:       { background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff', borderRadius: 6, padding: '6px 14px', fontSize: 13, cursor: 'pointer', marginBottom: 12 },
+  headerContent: { display: 'flex', alignItems: 'center', gap: 20 },
+  avatar:        { width: 64, height: 64, borderRadius: 32, background: 'rgba(255,255,255,0.2)', color: '#fff', fontSize: 28, fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  studentName:   { fontSize: 22, fontWeight: 'bold', color: '#fff', margin: '0 0 4px' },
+  studentMeta:   { fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 2px' },
+  studentEmail:  { fontSize: 12, color: 'rgba(255,255,255,0.6)', margin: 0 },
+  headerActions: { marginLeft: 'auto', display: 'flex', gap: 10 },
+  reportBtn:     { background: 'rgba(255,255,255,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
+  whatsappBtn:   { background: '#25D366', color: '#fff', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: 13, fontWeight: 'bold', cursor: 'pointer' },
+  statsGrid:     { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, padding: '20px 24px 0' },
+  tabs:          { display: 'flex', background: '#fff', borderBottom: '2px solid #eee', margin: '20px 0 0' },
+  tab:           { flex: 1, padding: '14px', border: 'none', background: 'none', fontSize: 14, fontWeight: 'bold', color: '#888', cursor: 'pointer' },
+  tabActive:     { color: '#2E86AB', borderBottom: '3px solid #2E86AB', background: '#EAF4FB' },
+  content:       { padding: '20px 24px' },
+  center:        { textAlign: 'center', color: '#888', padding: 40 },
+  card:          { background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
+  cardTitle:     { fontSize: 16, fontWeight: 'bold', color: '#1A5276', margin: '0 0 16px' },
   table:         { width: '100%', borderCollapse: 'collapse' },
   thead:         { background: '#EAF4FB' },
   th:            { padding: '12px 16px', textAlign: 'left', fontSize: 13, color: '#1A5276', fontWeight: 'bold', borderBottom: '2px solid #2E86AB' },
   tr:            { borderBottom: '1px solid #f0f0f0' },
   td:            { padding: '12px 16px', fontSize: 14, color: '#333' },
-  typeBadge:     { background: '#EAF4FB', color: '#2E86AB', padding: '3px 8px', borderRadius: 4, fontSize: 12 },
-  gradeBadge:    { padding: '4px 12px', borderRadius: 20, fontSize: 13, fontWeight: 'bold' },
+  gradeBadge:    { padding: '4px 10px', borderRadius: 6, fontSize: 13, fontWeight: 'bold' },
+  subjectRow:    { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 },
+  subjectName:   { width: 160, fontSize: 14, color: '#333', fontWeight: 'bold', flexShrink: 0 },
+  barWrap:       { flex: 1, height: 12, background: '#f0f0f0', borderRadius: 6, overflow: 'hidden' },
+  bar:           { height: '100%', borderRadius: 6, transition: 'width 0.5s' },
+  subjectScore:  { width: 45, fontSize: 14, fontWeight: 'bold', textAlign: 'right', flexShrink: 0 },
+  subjectCount:  { width: 100, fontSize: 12, color: '#aaa', flexShrink: 0 },
+  infoGrid:      { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 24 },
+  parentSection: { borderTop: '1px solid #f0f0f0', paddingTop: 20 },
+  contactBtn:    { background: '#EAF4FB', color: '#2E86AB', border: '1px solid #2E86AB', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 'bold', cursor: 'pointer' },
+  emailForm:     { display: 'flex', flexDirection: 'column', gap: 10 },
+  input:         { padding: '10px 12px', border: '1.5px solid #ddd', borderRadius: 8, fontSize: 14 },
+  sendBtn:       { background: '#2E86AB', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, fontWeight: 'bold', cursor: 'pointer' },
+  cancelBtn:     { background: '#f0f0f0', color: '#555', border: 'none', borderRadius: 8, padding: '10px 20px', fontSize: 14, cursor: 'pointer' },
 };
 
 export default StudentProfile;
