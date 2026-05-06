@@ -98,7 +98,7 @@ const StudyMaterials = () => {
 
               {selected.fileUrl && (
                 
-                <a href={`http://localhost:5000${selected.fileUrl}`}
+                <a href={`https://aceprep-backend-uvdn.onrender.com${selected.fileUrl}`}
                   target="_blank"
                   rel="noreferrer"
                   style={styles.downloadLink}

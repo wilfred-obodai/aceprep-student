@@ -46,7 +46,7 @@ const StudyMaterials = () => {
 
   const fetchMaterials = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/upload/materials', {
+      const res = await fetch('https://aceprep-backend-uvdn.onrender.com/api/upload/materials', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -75,7 +75,7 @@ const StudyMaterials = () => {
       formData.append('content',     content);
       if (file) formData.append('file', file);
 
-      const res = await fetch('http://localhost:5000/api/upload/material', {
+      const res = await fetch('https://aceprep-backend-uvdn.onrender.com/api/upload/material', {
         method:  'POST',
         headers: { Authorization: `Bearer ${token}` },
         body:    formData,
@@ -101,7 +101,7 @@ const StudyMaterials = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this material?')) return;
     try {
-      await fetch(`http://localhost:5000/api/upload/materials/${id}`, {
+      await fetch(`https://aceprep-backend-uvdn.onrender.com/api/upload/materials/${id}`, {
         method:  'DELETE',
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -266,7 +266,7 @@ const StudyMaterials = () => {
                   </div>
                   {m.fileUrl && (
                     
-                    <a href={`http://localhost:5000${m.fileUrl}`}
+                    <a href={`https://aceprep-backend-uvdn.onrender.com${m.fileUrl}`}
                       target="_blank"
                       rel="noreferrer"
                       style={styles.downloadbtn}

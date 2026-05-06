@@ -34,7 +34,7 @@ const AIQuestionGenerator = () => {
     setSaveMsg('');
 
     try {
-      const res = await fetch('http://localhost:5000/api/ai/chat', {
+      const res = await fetch('https://aceprep-backend-uvdn.onrender.com/api/ai/chat', {
         method:  'POST',
         headers: {
           'Content-Type':  'application/json',

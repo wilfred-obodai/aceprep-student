@@ -33,7 +33,7 @@ const QuizBattle = () => {
 
   // Connect socket
   useEffect(() => {
-    socketRef.current = io('http://localhost:5000');
+    socketRef.current = io('https://aceprep-backend-uvdn.onrender.com');
 
     socketRef.current.on('players_update', ({ players }) => {
       setPlayers(players);

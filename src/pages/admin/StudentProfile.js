@@ -46,7 +46,7 @@ const StudentProfile = () => {
   const downloadReportCard = async () => {
     setDownloading(true);
     try {
-      const url = `http://localhost:5000/api/report-card/${id}?academicYear=2026`;
+      const url = `https://aceprep-backend-uvdn.onrender.com/api/report-card/${id}?academicYear=2026`;
       const res  = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const blob = await res.blob();
       const blobUrl = window.URL.createObjectURL(blob);

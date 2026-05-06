@@ -136,7 +136,7 @@ const PastQuestionsPDF = () => {
                     <p style={styles.pdfFile}>{pdf.file_name}</p>
                   </div>
                   <div style={styles.pdfActions}>
-                    <a href={`http://localhost:5000${pdf.file_url}`} target="_blank"
+                    <a href={`https://aceprep-backend-uvdn.onrender.com${pdf.file_url}`} target="_blank"
                       rel="noreferrer" style={styles.viewPdfBtn}>👁️ View</a>
                     <button onClick={() => handleDelete(pdf.id)} style={styles.deletePdfBtn}>🗑️</button>
                   </div>

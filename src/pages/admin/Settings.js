@@ -44,7 +44,7 @@ const Settings = () => {
     try {
       const formData = new FormData();
       formData.append('logo', logoFile);
-      const res = await fetch('http://localhost:5000/api/upload/logo', {
+      const res = await fetch('https://aceprep-backend-uvdn.onrender.com/api/upload/logo', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -140,7 +140,7 @@ const Settings = () => {
               <div style={styles.logoSection}>
                 <div style={styles.logoPreviewBox}>
                   {logoPreview || school?.logoUrl ? (
-                    <img src={logoPreview || `http://localhost:5000${school?.logoUrl}`} alt="School Logo" style={styles.logoImg} />
+                    <img src={logoPreview || `https://aceprep-backend-uvdn.onrender.com${school?.logoUrl}`} alt="School Logo" style={styles.logoImg} />
                   ) : (
                     <div style={styles.logoPlaceholder}>
                       <p style={{ fontSize: 40 }}>🏫</p>
@@ -166,7 +166,7 @@ const Settings = () => {
               <div style={styles.reportPreview}>
                 <div style={styles.previewHeader}>
                   {(logoPreview || school?.logoUrl) && (
-                    <img src={logoPreview || `http://localhost:5000${school?.logoUrl}`} alt="Logo" style={styles.previewLogo} />
+                    <img src={logoPreview || `https://aceprep-backend-uvdn.onrender.com${school?.logoUrl}`} alt="Logo" style={styles.previewLogo} />
                   )}
                   <div style={{ textAlign: 'center', flex: 1 }}>
                     <p style={styles.previewSchoolName}>{school?.name}</p>

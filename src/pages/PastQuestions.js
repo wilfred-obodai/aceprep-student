@@ -298,7 +298,7 @@ const PastQuestions = () => {
                     )}
                     <div style={styles.pdfViewer}>
                       <iframe
-                        src={`http://localhost:5000${(selPdf || pdfs[0])?.file_url}`}
+                        src={`https://aceprep-backend-uvdn.onrender.com${(selPdf || pdfs[0])?.file_url}`}
                         style={styles.pdfFrame}
                         title="Past Questions PDF"
                       />
